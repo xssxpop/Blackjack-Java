@@ -36,6 +36,8 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
 
+
+        //Get imageViews to edit cards when drawn.
         cardPlayerSlots.add((ImageView) findViewById(R.id.cardViewSlot1));
         cardPlayerSlots.add((ImageView) findViewById(R.id.cardViewSlot2));
         cardPlayerSlots.add((ImageView) findViewById(R.id.cardViewSlot3));
@@ -47,14 +49,14 @@ public class GameActivity extends AppCompatActivity {
         cardCpuSlots.add((ImageView) findViewById(R.id.cardViewSlot9));
         cardCpuSlots.add((ImageView) findViewById(R.id.cardViewSlot10));
 
-
-        System.out.println(deck);
         StartGame();
     }
 
 
     void StartGame(){
 
+
+        //Gets card names from text file and adds them to a arrayList of type string.
         try {
             DataInputStream textFileStream = new DataInputStream(getAssets().open(String.format("Cards.txt")));
             Scanner sc = new Scanner(textFileStream);
@@ -66,23 +68,25 @@ public class GameActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
+
         //Add 2 random cards to Player and Computers Inv.
         DrawCard(playerInventory);
         DrawCard(playerInventory);
         DrawCard(cpuInventory);
         DrawCard(cpuInventory);
+
+        //Calculate both players hands.
         playersTotal = CalculateHand(playerInventory);
         cpuTotal = CalculateHand(cpuInventory);
-       // String playString = String.valueOf(playersTotal);
-     //   String cpuString = String.valueOf(cpuTotal);
-       // ((TextView)findViewById(R.id.PlayerAmountView)).setText(playString);
-     //   ((TextView)findViewById(R.id.CpuAmountView)).setText(cpuString);
+
+        //Check if player has won already.
         PlayerTurnOver();
+
+        //Update both player and cpu field.
         UpdateField(playerInventory,cardPlayerSlots);
         UpdateField(cpuInventory,cardCpuSlots);
-        System.out.println(playerInventory);
-        System.out.println(cpuInventory);
-        //System.out.println(deck);
+
+        //Set turn booleans.
         isPlayersTurn = true;
         isCPUTurn = false;
     }
@@ -90,25 +94,34 @@ public class GameActivity extends AppCompatActivity {
 
 
     public void DrawButton(View buttonView){
+
+        //Checks if its the players turn and if so initiates a draw.
         if (isPlayersTurn && !isCPUTurn){
+
+            //Draws Card
             DrawCard(playerInventory);
+
+            //Disables buttons.
             ((Button)findViewById(R.id.DrawButton)).setEnabled(false);
             ((Button)findViewById(R.id.StickButton)).setEnabled(false);
+
+            //Calculates players hand.
             playersTotal = CalculateHand(playerInventory);
-           // String playString = String.valueOf(playersTotal);
-           // String cpuString = String.valueOf(cpuTotal);
-          //  ((TextView)findViewById(R.id.PlayerAmountView)).setText(playString);
-         //   ((TextView)findViewById(R.id.CpuAmountView)).setText(cpuString);
+
+            //Checks if player has won or is bust.
             PlayerTurnOver();
+
+            //Updates players field.
             UpdateField(playerInventory,cardPlayerSlots);
-            System.out.println(playerInventory);
-            System.out.println(playersTotal);
-            System.out.println(deck);
-            //Check if players cards exceed 21 or equal 21.
+
         }
     }
 
+
+
     public void StickButton(View buttonView){
+
+        //Checks if its players turn and if they press button it will initiate the cpu turn.
         if (isPlayersTurn && !isCPUTurn){
             isPlayersTurn = false;
             ((Button)findViewById(R.id.DrawButton)).setEnabled(false);
@@ -119,6 +132,8 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
+
+    //Checks if players hand equals, is less than or exceeds 21.
     void PlayerTurnOver(){
         if (playersTotal > 21){
             DisplayText("You Went Bust!");
@@ -135,6 +150,8 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
+
+    // Resets all values, cleans the field and restarts the game.
     public void RestartButton(View v){
         playersTotal = 0;
         cpuTotal = 0;
@@ -148,11 +165,19 @@ public class GameActivity extends AppCompatActivity {
         StartGame();
     }
 
+
+    // Calculates the hand of the inventory passed in.
     int CalculateHand(ArrayList<String> inv){
+
         int total = 0;
+
+        //Creating arraylists for splitting aces and other cards.
         ArrayList<String> others = new ArrayList<>();
         ArrayList<String> aces = new ArrayList<String>();
 
+
+        //Foreach loop that adds all aces in inventory to the ace list.
+        //Adds all other cards to the other list.
         for(String card : inv) {
             if (card.contains("A")){
                 aces.add(card);
@@ -164,6 +189,7 @@ public class GameActivity extends AppCompatActivity {
         }
 
 
+        //Foreach loop that calculates the total depending on what the name of the card is in the list.
         for(String card : others) {
 
             if (card.contains("J") || card.contains("Q") || card.contains("K") || card.contains("10")) {
@@ -177,6 +203,9 @@ public class GameActivity extends AppCompatActivity {
                 }
             }
 
+
+        //Foreach loop that depending on the total up to this point decides if the aces should be
+        //counted as 11 or 1.
         for(String card : aces) {
             if (total + 11 > 21){
                 total += 1;
@@ -188,6 +217,9 @@ public class GameActivity extends AppCompatActivity {
         return total;
     }
 
+
+
+    // Changes the outcome textView depending on who won.
     void DisplayText(String message){
         ((TextView)findViewById(R.id.OutcomeText)).setText(message);
         ((Button)findViewById(R.id.DrawButton)).setEnabled(false);
@@ -197,32 +229,33 @@ public class GameActivity extends AppCompatActivity {
 
     public void StartCPUTurn(){
 
+
+        //Calculates and updates the cpu's hand and field.
         cpuTotal = CalculateHand(cpuInventory);
         UpdateField(cpuInventory,cardCpuSlots);
-    //    String playString = String.valueOf(playersTotal);
-     //   String cpuString = String.valueOf(cpuTotal);
-     //   ((TextView)findViewById(R.id.PlayerAmountView)).setText(playString);
-      //  ((TextView)findViewById(R.id.CpuAmountView)).setText(cpuString);
 
+
+        //While the cpu has less than 17 it will draw a card and update their field.
         while(cpuTotal < 17){
             DrawCard(cpuInventory);
             cpuTotal = CalculateHand(cpuInventory);
-         //   playString = String.valueOf(playersTotal);
-         //   cpuString = String.valueOf(cpuTotal);
-        //    ((TextView)findViewById(R.id.PlayerAmountView)).setText(playString);
-        //    ((TextView)findViewById(R.id.CpuAmountView)).setText(cpuString);
             UpdateField(cpuInventory,cardCpuSlots);
             System.out.println(cpuInventory);
+
+            //Once they go above 17 or 21 break.
             if (cpuTotal > 21){
                 break;
             }
         }
 
+        //Compare both players hands to find the outcome.
         CompareHands();
         System.out.println(cpuInventory);
 
     }
 
+
+    //Compares hands and calculates who was won.
     void CompareHands(){
 
         if (cpuTotal > 21){
@@ -247,7 +280,12 @@ public class GameActivity extends AppCompatActivity {
         }
     }
 
+
+
     void DrawCard(ArrayList<String> inv){
+
+        //Gets a random number between 0 and the size of the deck and adds it to the inventory
+        //passed in and then removes it from the deck.
         Random rand = new Random();
         int number;
         String card;
@@ -256,74 +294,24 @@ public class GameActivity extends AppCompatActivity {
         deck.remove(number);
         inv.add(card);
     }
-    /*
-    void ACalculateComputerHand(){
-        cpuTotal = 0;
-        for(String card : cpuInventory) {
-
-            if (card.contains("1") && !card.contains("0")) {
-                cpuTotal += 1;
-            }
-            else if (card.contains("2")) {
-                cpuTotal += 2;
-            }
-            else if (card.contains("3")) {
-                cpuTotal += 3;
-            }
-            else if (card.contains("4")) {
-                cpuTotal += 4;
-            }
-            else if (card.contains("5")) {
-                cpuTotal += 5;
-            }
-            else if (card.contains("6")) {
-                cpuTotal += 6;
-            }
-            else if (card.contains("7")) {
-                cpuTotal += 7;
-            }
-            else if (card.contains("8")) {
-                cpuTotal += 8;
-            }
-            else if (card.contains("9")) {
-                cpuTotal += 9;
-            }
-            else if (card.contains("J") || card.contains("Q") || card.contains("K") || card.contains("10")) {
-                cpuTotal += 10;
-            }
-            else if (card.contains("A")) {
-                if (cpuTotal + 11 > 21) {
-                    cpuTotal += 1;
-                } else if (cpuTotal + 11 < 21) {
-                    cpuTotal += 11;
-                }
-            }
-        }
-        if(startCPUTurn){
-            startCPUTurn = false;
-            StartCPUTurn();
-        }
-        else if(cpuTotal > 21){
-            Win("You");
-        }
-        else{
-            StartCPUTurn();
-        }
-
-        System.out.println( "Cpu amount"+ cpuTotal);
-
-    }
-    */
 
 
+    //Sets all the card imageView of the slots passed in to invisible.
     void ClearField(ArrayList<ImageView> cardSlots){
         for (ImageView slot : cardSlots)
         {
             slot.setImageResource(android.R.color.transparent);
         }
     }
+
+
+    //Sets all the cards to the respective image in drawable depending on the slot in the inventory
+    //passed in.
     void UpdateField(ArrayList<String> inv, ArrayList<ImageView> cardSlots){
 
+
+        //If player inventory is passed in then loop through and set all the card imageViews to the
+        //respective card image in drawable.
         if (inv == playerInventory){
             for(int i = 0; i < 5; i++){
                 if (i >= inv.size()){
@@ -333,6 +321,10 @@ public class GameActivity extends AppCompatActivity {
             }
         }
 
+
+        //If cpu inventory is passed in then loop through and set all the card image views to
+        //the respective card image in drawable then, set the first won to the card back so its
+        //turned over.
         else if(inv == cpuInventory){
 
 
